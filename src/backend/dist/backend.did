@@ -1,0 +1,102 @@
+type Value = 
+ variant {
+   "bool": bool;
+   float: float64;
+   "int": int;
+   "nat": nat;
+   "null";
+   "text": text;
+ };
+type UserRole = 
+ variant {
+   admin;
+   guest;
+   user;
+ };
+type Timestamp = nat;
+type Result__1 = 
+ record {
+   hasMore: bool;
+   rows: vec vec Cell;
+ };
+type Result_1 = 
+ variant {
+   err: Error;
+   ok;
+ };
+type Result = 
+ variant {
+   err: BookingError;
+   ok: BookingRef;
+ };
+type Error = 
+ variant {
+   AmbiguousAttribute: record {
+                         field: text;
+                         sources: vec text;
+                       };
+   FrontendOriginMismatch: record {
+                             expected: vec text;
+                             got: text;
+                           };
+   FrontendOriginsNotConfigured;
+   MalformedCandid;
+   MissingField: text;
+   MixedSsoSources: record {
+                      otherKeys: vec text;
+                      ssoKeys: vec text;
+                    };
+   NoAttributes;
+   Stale: record {ageNs: nat;};
+   UnknownNonce;
+   UntrustedSsoSource: record {domain: text;};
+ };
+type Cell = 
+ record {
+   name: text;
+   value: Value;
+ };
+type BookingRef = text;
+type BookingInput = 
+ record {
+   motorcycleModel: text;
+   name: text;
+   notes: text;
+   phone: text;
+   preferredDate: text;
+   serviceType: text;
+ };
+type BookingError = 
+ variant {
+   emptyName;
+   emptyPhone;
+   emptyServiceType;
+ };
+type Booking = 
+ record {
+   createdAt: Timestamp;
+   motorcycleModel: text;
+   name: text;
+   notes: text;
+   phone: text;
+   preferredDate: text;
+   ref: BookingRef;
+   serviceType: text;
+ };
+service : {
+  _initialize_access_control: () -> ();
+  _internet_identity_sign_in_finish: () -> (Result_1);
+  _internet_identity_sign_in_start: () -> (blob);
+  assignCallerUserRole: (user: principal, role: UserRole) -> ();
+  execute: (qJson: text) -> (Result__1) query;
+  /// Static Markdown documentation of the backend's public API.
+  getApiDoc: () -> (text) query;
+  /// Fetch a stored booking by its confirmation reference.
+  getBooking: (ref: BookingRef) -> (opt Booking) query;
+  getCallerUserRole: () -> (UserRole) query;
+  isCallerAdmin: () -> (bool) query;
+  schema: () -> (text) query;
+  /// Submit a repair booking request. Open to anonymous callers.
+  /// Returns a short confirmation reference, or a validation error.
+  submitBooking: (input: BookingInput) -> (Result);
+}
